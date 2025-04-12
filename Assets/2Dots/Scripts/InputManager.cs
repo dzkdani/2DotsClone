@@ -40,6 +40,7 @@ public class InputManager : MonoBehaviour
         Dot dot = GetDotUnderMouse();
         if (dot != null)
         {
+            lineConnector.SetLineColor(dot.GetColor());
             connectedDots.Clear();
             connectedDots.Add(dot);
             currentColor = dot.dotColor;
@@ -92,7 +93,6 @@ public class InputManager : MonoBehaviour
         foreach (var hit in hits)
         {
             Dot dot = hit.gameObject.GetComponent<Dot>();
-            lineConnector.SetLineColor(dot.GetColor());
             if (dot != null) return dot;
         }
 
