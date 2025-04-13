@@ -99,6 +99,8 @@ public class GridManager : MonoBehaviour
                 {
                     ReturnDotToPool(dots[x, y].gameObject);
                     dots[x, y] = null;
+                    RefillGrid();
+                    isShuffling = false;
 
                     //Didn't work
                     // animationsLeft++;
