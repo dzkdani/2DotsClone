@@ -132,7 +132,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    public void SpawnBomb(int endX, int endY)
+    public void SpawnBomb(int endX, int endY, bool isColored = false)
     {
         // Instantiate bomb object
         GameObject bombObj = Instantiate(bombPrefab, gridPanel);
@@ -157,11 +157,10 @@ public class GridManager : MonoBehaviour
         // Activate bomb behavior if any
         bomb.column = endX;
         bomb.row = endY;
-        bomb.SetBomb();
+        bomb.SetBomb(isColored);
 
         Debug.Log($"[SpawnBomb] Assigned bomb at ({endX},{endY}) | isBomb: {dot.isBomb} | InGrid: {dots[endX, endY] == dot}");
     }
-
 
     public void RefillGrid()
     {
@@ -252,7 +251,8 @@ public class GridManager : MonoBehaviour
         return new Vector2(x * cellSize, -y * cellSize);
     }
 
-    public void ClearDotAt(int x, int y, bool spawnBomb = false)
+    public void ClearDotAt(int x, int y, bool isBomb = false, bool isColoredBomb = false)
+
     {
         float clearDuration = 0.25f;
 
@@ -270,12 +270,15 @@ public class GridManager : MonoBehaviour
                 });
         }
 
-        if (spawnBomb)
+        if (isBomb || isColoredBomb)
         {
-            DOVirtual.DelayedCall(0.05f, () => SpawnBomb(x, y));
+            DOVirtual.DelayedCall(0.05f, () => SpawnBomb(x, y, isColoredBomb));
         }
+
         DOVirtual.DelayedCall(clearDuration, () => RefillGrid());  
     }
+
+    
 
     public List<Dot> FindHint()
     {
@@ -296,7 +299,9 @@ public class GridManager : MonoBehaviour
                 }
             }
         }
-        Debug.Log("No possible match found!");
+        
+        Debug.Log("No possible match found! shuffling grid...");
+        ShuffleGrid();
         return null;
     }
 

@@ -2,11 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 using UnityEngine.EventSystems;
+using System;
 
 public class Bomb : MonoBehaviour, IPointerClickHandler
 {
     public int column, row;
     private bool isActive;
+    private bool isColored;
     private GridManager gridManager;
 
     void Awake()
@@ -19,9 +21,10 @@ public class Bomb : MonoBehaviour, IPointerClickHandler
         }  
     }
 
-    public void SetBomb()
+    public void SetBomb(bool colored = false)
     {
         isActive = true;
+        isColored = colored;
         transform.DOScale(1.2f, 0.5f).SetLoops(-1, LoopType.Yoyo);
     }
 
@@ -30,6 +33,14 @@ public class Bomb : MonoBehaviour, IPointerClickHandler
         if (!isActive) return;
         transform.DOKill();
         DestroyArea();
+    }
+
+    public void OnColoredBombConnected()
+    {
+        //colored bomb connected to a colored dot
+        //check the color of the connected dot
+        //destroy every dot of that color
+        // DestroyDotWithColor();
     }
 
     void DestroyArea()
@@ -45,6 +56,11 @@ public class Bomb : MonoBehaviour, IPointerClickHandler
             }
         }
         Destroy(gameObject);
+    }
+
+    public void DestroyDotWithColor(DotColor color)
+    {
+        
     }
 
     public void OnPointerClick(PointerEventData eventData)

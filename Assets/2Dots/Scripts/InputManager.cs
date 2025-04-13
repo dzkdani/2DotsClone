@@ -41,11 +41,6 @@ public class InputManager : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            gridManager.ShuffleGrid();
-        }
-
         if (Input.GetMouseButtonDown(0))
         {
             StartConnection();
@@ -103,24 +98,16 @@ public class InputManager : MonoBehaviour
 
     void EndConnection()
     {
-        bool isBomb = false;
-        isBomb = connectedDots.Count >= 6;
+        bool bomb = connectedDots.Count == 6;
+        bool coloredBomb = connectedDots.Count == 9;
         if (connectedDots.Count >= 3)
         {
             lineConnector.ResetLine();
             for (int i = 0; i < connectedDots.Count; i++)
             {
                 Dot dot = connectedDots[i];
-                if (isBomb)
-                {
-                    gridManager.ClearDotAt(dot.column, dot.row, i == connectedDots.Count - 1);
-                }
-                else
-                {
-                    gridManager.ClearDotAt(dot.column, dot.row);
-                }
+                gridManager.ClearDotAt(dot.column, dot.row, bomb, coloredBomb);
             }
-
         }
 
         connectedDots.Clear();
@@ -138,7 +125,7 @@ public class InputManager : MonoBehaviour
         foreach (var hit in hits)
         {
             Dot dot = hit.gameObject.GetComponent<Dot>();
-            if (dot == null)  Debug.Log("dot obj not found");
+            if (dot == null)  Debug.Log("dot obj not clicked");
             else return dot;
         }
 
