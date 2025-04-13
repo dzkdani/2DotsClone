@@ -25,6 +25,8 @@ public class Dot : MonoBehaviour, IPointerClickHandler
         isBomb = false;
     }
 
+    public Vector2Int GridPos => new Vector2Int(column, row);
+
     public void SetColor(DotColor color, Color actualColor)
     {
         dotColor = color;
@@ -49,6 +51,10 @@ public class Dot : MonoBehaviour, IPointerClickHandler
         image.DOColor(targetColor, 0.3f).OnKill(() => SetColor(dotColor, colors[nextIndex])); 
     }
 
+    public void Highlight()
+    {
+        GetComponent<RectTransform>().DOPunchScale(Vector3.one * 0.5f, 0.5f, 5, 1f);
+    }
 
     public void OnPointerClick(PointerEventData eventData)
     {

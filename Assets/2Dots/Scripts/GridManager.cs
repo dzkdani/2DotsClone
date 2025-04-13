@@ -14,6 +14,9 @@ public class GridManager : MonoBehaviour
     [SerializeField] private int poolSize = 100;
     private Queue<GameObject> dotPool = new Queue<GameObject>();
     private Dot[,] dots;
+    private bool isRefilling;
+    public bool IsRefilling => isRefilling; // Make it readable outside
+
 
     void Start()
     {
@@ -78,6 +81,39 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    void ClearGrid()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (dots[x, y] != null)
+                {
+                    // ReturnDotToPool(dots[x, y].gameObject);
+                    // dots[x, y] = null;
+                    
+                    Dot dot = dots[x, y];
+                    RectTransform rt = dot.GetComponent<RectTransform>(); 
+
+                    rt.DOScale(Vector3.zero, 0.2f)
+                        .SetEase(Ease.InBack)
+                        .OnComplete(() =>
+                        {
+                            ReturnDotToPool(dot.gameObject);
+                            dots[x, y] = null;
+                        });
+                }
+            }
+        }
+    }
+
+    public void ShuffleGrid()
+    {
+        ClearGrid();
+        RefillGrid();
+    }
+
+
     public void SpawnBomb(int endX, int endY)
     {
         // Instantiate bomb object
@@ -107,13 +143,13 @@ public class GridManager : MonoBehaviour
 
         // Debug
         Debug.Log($"[SpawnBomb] Assigned bomb at ({endX},{endY}) | isBomb: {dot.isBomb} | InGrid: {dots[endX, endY] == dot}");
-
     }
 
 
     public void RefillGrid()
     {
-        Debug.Log($"[RefillGrid Start] dots[0,0]: {(dots[0,0] == null ? "null" : (dots[0,0].isBomb ? "bomb" : "dot"))}");
+        if (isRefilling) return;
+        isRefilling = true;
 
         float moveDuration = 0.25f;
         float fallDelay = 0.05f;
@@ -153,8 +189,6 @@ public class GridManager : MonoBehaviour
         float refillStartDelay = (width - 1) * fallDelay + moveDuration;
         DOVirtual.DelayedCall(refillStartDelay, () =>
         {
-            Debug.Log($"Before refill, dots[0,0]: {(dots[0,0] == null ? "null" : dots[0,0].isBomb ? "bomb" : "dot")}");
-
             for (int x = 0; x < width; x++)
             {
                 float columnDelay = x * fallDelay;
@@ -163,18 +197,14 @@ public class GridManager : MonoBehaviour
                 {
                     if (dots[x, y] == null)
                     {
-                        // Normal spawn
                         SpawnNewDot(x, y, columnDelay, moveDuration);
-                    }
-                    else if (dots[x, y].isBomb)
-                    {
-                        // Skip bombs completely
-                        Debug.LogWarning($"Skipping spawn at ({x},{y}) because it's a bomb.");
-                        continue;
                     }
                 }
             }
         });
+
+        float totalDelay = (width - 1) * fallDelay + moveDuration + 0.1f;
+        DOVirtual.DelayedCall(totalDelay, () => { isRefilling = false; });
     }
 
     void SpawnNewDot(int x, int y, float delay, float duration)
@@ -219,11 +249,6 @@ public class GridManager : MonoBehaviour
                 .SetEase(Ease.InBack)
                 .OnComplete(() =>
                 {
-                    if (dot.isBomb)
-                    {
-                        Debug.LogWarning($"[ClearDotAt] Tried to clear a bomb at ({x},{y}) — skipping!");
-                        return;
-                    }
                     ReturnDotToPool(dot.gameObject);
                     dots[x, y] = null;
                 });
@@ -236,6 +261,58 @@ public class GridManager : MonoBehaviour
         DOVirtual.DelayedCall(clearDuration, () => RefillGrid());  
     }
 
+    public List<Dot> FindHint()
+    {
+        bool[,] visited = new bool[width, height];
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (!visited[x, y] && dots[x, y] != null)
+                {
+                    List<Dot> cluster = new List<Dot>();
+                    DotColor targetColor = dots[x, y].dotColor;
+                    FloodFill(x, y, targetColor, visited, cluster);
+
+                    if (cluster.Count >= 3)
+                        return cluster;
+                }
+            }
+        }
+        Debug.Log("No possible match found!");
+        return null;
+    }
+
+    void FloodFill(int startX, int startY, DotColor color, bool[,] visited, List<Dot> result)
+    {
+        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        queue.Enqueue(new Vector2Int(startX, startY));
+
+        while (queue.Count > 0)
+        {
+            Vector2Int current = queue.Dequeue();
+            int x = current.x;
+            int y = current.y;
+
+            if (x < 0 || x >= width || y < 0 || y >= height || visited[x, y])
+                continue;
+
+            Dot dot = dots[x, y];
+            if (dot == null || dot.dotColor != color)
+                continue;
+
+            visited[x, y] = true;
+            result.Add(dot);
+
+            // Check all 4 adjacent tiles
+            queue.Enqueue(new Vector2Int(x + 1, y));
+            queue.Enqueue(new Vector2Int(x - 1, y));
+            queue.Enqueue(new Vector2Int(x, y + 1));
+            queue.Enqueue(new Vector2Int(x, y - 1));
+        }
+    }
+
     public int GetWidth()
     {
         return width;
@@ -244,6 +321,11 @@ public class GridManager : MonoBehaviour
     public int GetHeight()
     {
         return height;
+    }
+
+    public Dot[,] GetDots()
+    {
+        return dots;
     }
 
     public Dot GetDotAt(int x, int y)

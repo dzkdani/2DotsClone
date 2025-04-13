@@ -14,9 +14,21 @@ public class LineConnector : MonoBehaviour
 
     void Update()
     {
-        if (connectedDots.Count == 0) return;
-        if (Input.GetMouseButton(0)) DrawLine();
-        else if (Input.GetMouseButtonUp(0)) ResetLine();
+        if (connectedDots.Count > 0 && Input.GetMouseButton(0))
+        {
+            UpdateMousePosition();
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            ResetLine();
+        }
+    }
+
+    void UpdateMousePosition()
+    {
+        if (lineRenderer.positionCount < connectedDots.Count + 1)
+            return;
+        DrawLine();
     }
 
     public void AddDot(Dot dot)
@@ -24,27 +36,21 @@ public class LineConnector : MonoBehaviour
         if (!connectedDots.Contains(dot))
         {
             connectedDots.Add(dot);
+
+            Vector3 worldPos = dot.transform.position;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Camera.main.WorldToScreenPoint(worldPos), Camera.main, out Vector2 localPos);
+
+            lineRenderer.positionCount = connectedDots.Count + 1;
+            lineRenderer.SetPosition(connectedDots.Count - 1, localPos);
+            lineRenderer.SetPosition(connectedDots.Count, localPos); // default mouse pos
         }
     }
 
     void DrawLine()
     {
-        Vector3[] points = new Vector3[connectedDots.Count + 1];
-
-        for (int i = 0; i < connectedDots.Count; i++)
-        {
-            Vector3 worldPos = connectedDots[i].transform.position;
-            Vector2 localPos;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Camera.main.WorldToScreenPoint(worldPos), Camera.main, out localPos);
-            points[i] = localPos;
-        }
-
         Vector2 mouseLocalPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Input.mousePosition, Camera.main, out mouseLocalPos);
-        points[points.Length - 1] = mouseLocalPos;
-
-        lineRenderer.positionCount = points.Length;
-        lineRenderer.SetPositions(points);
+        lineRenderer.SetPosition(lineRenderer.positionCount - 1, mouseLocalPos);
     }
 
     public void ResetLine()
@@ -61,6 +67,15 @@ public class LineConnector : MonoBehaviour
         if (lineRenderer.material != null)
         {
             lineRenderer.material.color = color;
+        }
+    }
+
+    public void RemoveLastPoint()
+    {
+        if (connectedDots.Count > 0)
+        {
+            connectedDots.RemoveAt(connectedDots.Count - 1);
+            lineRenderer.positionCount = Mathf.Max(0, lineRenderer.positionCount - 1);
         }
     }
 
