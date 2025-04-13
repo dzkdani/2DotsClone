@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 
 public class InputManager : MonoBehaviour
 {
+    public Button shuffleButton;
     private LineConnector lineConnector;
     private GridManager gridManager;
     private List<Dot> connectedDots = new List<Dot>();
@@ -13,6 +15,8 @@ public class InputManager : MonoBehaviour
 
     void Start()
     {
+        shuffleButton.onClick.RemoveAllListeners();
+        shuffleButton.onClick.AddListener(() => gridManager.ShuffleGrid());
         gridManager = GetComponent<GridManager>();
         lineConnector = FindObjectOfType<LineConnector>();
         if (lineConnector == null)
