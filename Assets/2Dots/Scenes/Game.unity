@@ -389,7 +389,7 @@ GameObject:
   - component: {fileID: 658607517}
   - component: {fileID: 658607519}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: GameManagers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -410,13 +410,15 @@ MonoBehaviour:
   width: 7
   height: 7
   dotPrefab: {fileID: 4351906059702981176, guid: cbbb57db7f4cf9741980d08876900ac6, type: 3}
-  dotParent: {fileID: 1193935714}
+  bombPrefab: {fileID: 1636253490133099044, guid: 5a4b11eabb197a543896894b712763eb, type: 3}
+  gridPanel: {fileID: 1193935714}
   colors:
   - {r: 1, g: 0, b: 0, a: 1}
   - {r: 0, g: 0, b: 1, a: 1}
   - {r: 0, g: 1, b: 0, a: 1}
   - {r: 1, g: 0.84705883, b: 0.3019608, a: 1}
   - {r: 1, g: 0, b: 1, a: 1}
+  poolSize: 100
 --- !u!4 &658607518
 Transform:
   m_ObjectHideFlags: 0
@@ -444,7 +446,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df08a128102f3bb4ab860da03778323a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lineConnector: {fileID: 1783954017}
 --- !u!1 &1193935713
 GameObject:
   m_ObjectHideFlags: 0
@@ -666,4 +667,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvasRect: {fileID: 92498912}
-  lineRenderer: {fileID: 1783954016}

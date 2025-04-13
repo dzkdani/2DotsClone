@@ -1,14 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
+
 
 public class InputManager : MonoBehaviour
 {
-    // public Camera uiCamera;
-    // public LayerMask dotLayer;
-
-    public LineConnector lineConnector;
+    private LineConnector lineConnector;
     private GridManager gridManager;
     private List<Dot> connectedDots = new List<Dot>();
     private DotColor currentColor;
@@ -17,17 +14,22 @@ public class InputManager : MonoBehaviour
     void Start()
     {
         gridManager = GetComponent<GridManager>();
+        lineConnector = FindObjectOfType<LineConnector>();
+        if (lineConnector == null)
+        {
+            Debug.LogError("LineConnector not found in the scene.");
+        }
     }
 
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            TryStartConnection();
+            StartConnection();
         }
         else if (Input.GetMouseButton(0) && isDragging)
         {
-            TryContinueConnection();
+            ContinueConnection();
         }
         else if (Input.GetMouseButtonUp(0) && isDragging)
         {
@@ -35,7 +37,7 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    void TryStartConnection()
+    void StartConnection()
     {
         Dot dot = GetDotUnderMouse();
         if (dot != null)
@@ -50,7 +52,7 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    void TryContinueConnection()
+    void ContinueConnection()
     {
         Dot dot = GetDotUnderMouse();
         if (dot != null && !connectedDots.Contains(dot))
@@ -66,20 +68,28 @@ public class InputManager : MonoBehaviour
 
     void EndConnection()
     {
+        bool isBomb = false;
+        isBomb = connectedDots.Count >= 6;
         if (connectedDots.Count >= 3)
         {
-            foreach (var dot in connectedDots)
+            for (int i = 0; i < connectedDots.Count; i++)
             {
+                Dot dot = connectedDots[i];
                 lineConnector.ResetLine();
-                gridManager.ClearDotAt(dot.column, dot.row);
-                // Optional: Play scale down animation
+                if (isBomb)
+                {
+                    gridManager.ClearDotAt(dot.column, dot.row, i == connectedDots.Count - 1);
+                }
+                else
+                {
+                    gridManager.ClearDotAt(dot.column, dot.row);
+                }
             }
+
         }
 
         connectedDots.Clear();
         isDragging = false;
-
-        //end connection logic, e.g. check for game over, update score, or refill the grid
     }
 
     Dot GetDotUnderMouse()
@@ -93,7 +103,8 @@ public class InputManager : MonoBehaviour
         foreach (var hit in hits)
         {
             Dot dot = hit.gameObject.GetComponent<Dot>();
-            if (dot != null) return dot;
+            if (dot == null)  Debug.Log("dot obj not found");
+            else return dot;
         }
 
         return null;

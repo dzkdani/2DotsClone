@@ -3,15 +3,32 @@ using UnityEngine;
 
 public class LineConnector : MonoBehaviour
 {
-    [SerializeField] private RectTransform canvasRect;
-    [SerializeField] private LineRenderer lineRenderer;
-
+    public RectTransform canvasRect;
+    private LineRenderer lineRenderer;
     private List<Dot> connectedDots = new List<Dot>();
+
+    void Start()
+    {
+        lineRenderer = GetComponent<LineRenderer>();
+    }
 
     void Update()
     {
         if (connectedDots.Count == 0) return;
+        if (Input.GetMouseButton(0)) DrawLine();
+        else if (Input.GetMouseButtonUp(0)) ResetLine();
+    }
 
+    public void AddDot(Dot dot)
+    {
+        if (!connectedDots.Contains(dot))
+        {
+            connectedDots.Add(dot);
+        }
+    }
+
+    void DrawLine()
+    {
         Vector3[] points = new Vector3[connectedDots.Count + 1];
 
         for (int i = 0; i < connectedDots.Count; i++)
@@ -22,21 +39,12 @@ public class LineConnector : MonoBehaviour
             points[i] = localPos;
         }
 
-        // Last point: preview to mouse
-        Vector2 mouseLocal;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Input.mousePosition, Camera.main, out mouseLocal);
-        points[points.Length - 1] = mouseLocal;
+        Vector2 mouseLocalPos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Input.mousePosition, Camera.main, out mouseLocalPos);
+        points[points.Length - 1] = mouseLocalPos;
 
         lineRenderer.positionCount = points.Length;
         lineRenderer.SetPositions(points);
-    }
-
-    public void AddDot(Dot dot)
-    {
-        if (!connectedDots.Contains(dot))
-        {
-            connectedDots.Add(dot);
-        }
     }
 
     public void ResetLine()
@@ -51,7 +59,9 @@ public class LineConnector : MonoBehaviour
         lineRenderer.endColor = color;
 
         if (lineRenderer.material != null)
+        {
             lineRenderer.material.color = color;
+        }
     }
 
 }
