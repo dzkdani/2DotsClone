@@ -77,11 +77,11 @@ public class InputManager : MonoBehaviour
         {
             Dot lastDot = connectedDots[connectedDots.Count - 1];
 
-            // Allow backtracking
+            // backtracking
             if (connectedDots.Count >= 2 && dot == connectedDots[connectedDots.Count - 2])
             {
                 connectedDots.RemoveAt(connectedDots.Count - 1);
-                lineConnector.RemoveLastPoint(); // Implement this in LineConnector
+                lineConnector.RemoveLastPoint(); 
                 return;
             }
 
@@ -100,13 +100,21 @@ public class InputManager : MonoBehaviour
     {
         bool bomb = connectedDots.Count == 6;
         bool coloredBomb = connectedDots.Count == 9;
+
         if (connectedDots.Count >= 3)
         {
             lineConnector.ResetLine();
             for (int i = 0; i < connectedDots.Count; i++)
             {
                 Dot dot = connectedDots[i];
-                gridManager.ClearDotAt(dot.column, dot.row, bomb, coloredBomb);
+                if (i == connectedDots.Count - 1)
+                {
+                    gridManager.ClearDotAt(dot.column, dot.row, bomb, coloredBomb);
+                }
+                else
+                {
+                    gridManager.ClearDotAt(dot.column, dot.row);
+                }
             }
         }
 
@@ -125,10 +133,19 @@ public class InputManager : MonoBehaviour
         foreach (var hit in hits)
         {
             Dot dot = hit.gameObject.GetComponent<Dot>();
-            if (dot == null)  Debug.Log("dot obj not clicked");
-            else return dot;
+            // Bomb bomb = dot.gameObject.GetComponent<Bomb>(); //get bomb component from dot object
+            // if (bomb != null && bomb.IsActive() && bomb.IsColored())
+            // {
+            //     Debug.Log("Bomb clicked");
+            //     return dot; // return colored bomb object by its dot component
+            // }
+            if (dot != null) 
+            {
+                Debug.Log("Dot clicked: " + dot.dotColor.ToString());
+                return dot;
+            }
+            else return null; //return null if no dot or bomb is clicked
         }
-
         return null;
     }
 

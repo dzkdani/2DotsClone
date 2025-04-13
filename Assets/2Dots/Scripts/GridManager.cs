@@ -15,7 +15,7 @@ public class GridManager : MonoBehaviour
     private Queue<GameObject> dotPool = new Queue<GameObject>();
     private Dot[,] dots;
     private bool isRefilling;
-    public bool IsRefilling => isRefilling; // Make it readable outside
+    public bool IsRefilling => isRefilling; 
     private bool isShuffling;
     private float cellSize = 64f;
 
@@ -85,10 +85,11 @@ public class GridManager : MonoBehaviour
 
     public void ShuffleGrid()
     {
+        Debug.Log("Shuffling grid...");
         if (isShuffling || isRefilling) return; // avoid overlaps
         isShuffling = true;
 
-        int animationsLeft = 0;
+        // int animationsLeft = 0;
 
         for (int x = 0; x < width; x++)
         {
@@ -99,7 +100,7 @@ public class GridManager : MonoBehaviour
                     ReturnDotToPool(dots[x, y].gameObject);
                     dots[x, y] = null;
 
-                    //Bugged code
+                    //Didn't work
                     // animationsLeft++;
 
                     // int tempX = x;
@@ -109,7 +110,7 @@ public class GridManager : MonoBehaviour
 
                     // rt.DOScale(Vector3.zero, 0.1f)
                     //     .SetEase(Ease.InBack)
-                    //     .OnComplete(() =>
+                    //     .OnKill(() =>
                     //     {
                     //         ReturnDotToPool(dot.gameObject);
                     //         dots[tempX, tempY] = null;
@@ -117,18 +118,12 @@ public class GridManager : MonoBehaviour
                     //         animationsLeft--;
                     //         if (animationsLeft == 0)
                     //         {
-                    //             isClearing = false;
+                    //             isShuffling = false;
                     //             RefillGrid();
                     //         }
                     //     });
                 }
             }
-        }
-
-        if (animationsLeft == 0)
-        {
-            isShuffling = false;
-            RefillGrid(); // grid already empty, just in case
         }
     }
 
@@ -252,7 +247,6 @@ public class GridManager : MonoBehaviour
     }
 
     public void ClearDotAt(int x, int y, bool isBomb = false, bool isColoredBomb = false)
-
     {
         float clearDuration = 0.25f;
 
@@ -263,22 +257,20 @@ public class GridManager : MonoBehaviour
 
             rt.DOScale(Vector3.zero, clearDuration)
                 .SetEase(Ease.InBack)
-                .OnComplete(() =>
+                .OnKill(() =>
                 {
                     ReturnDotToPool(dot.gameObject);
                     dots[x, y] = null;
                 });
         }
 
-        if (isBomb || isColoredBomb)
+        if (isBomb)
         {
-            DOVirtual.DelayedCall(0.05f, () => SpawnBomb(x, y, isColoredBomb));
+            DOVirtual.DelayedCall(clearDuration, () => SpawnBomb(x, y, isColoredBomb));
         }
 
         DOVirtual.DelayedCall(clearDuration, () => RefillGrid());  
     }
-
-    
 
     public List<Dot> FindHint()
     {
