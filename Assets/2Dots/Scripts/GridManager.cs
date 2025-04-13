@@ -16,6 +16,8 @@ public class GridManager : MonoBehaviour
     private Dot[,] dots;
     private bool isRefilling;
     public bool IsRefilling => isRefilling; // Make it readable outside
+    private bool isShuffling;
+    private float cellSize = 64f;
 
 
     void Start()
@@ -81,38 +83,54 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    void ClearGrid()
+    public void ShuffleGrid()
     {
+        if (isShuffling || isRefilling) return; // avoid overlaps
+        isShuffling = true;
+
+        int animationsLeft = 0;
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
                 if (dots[x, y] != null)
                 {
-                    // ReturnDotToPool(dots[x, y].gameObject);
-                    // dots[x, y] = null;
-                    
-                    Dot dot = dots[x, y];
-                    RectTransform rt = dot.GetComponent<RectTransform>(); 
+                    ReturnDotToPool(dots[x, y].gameObject);
+                    dots[x, y] = null;
 
-                    rt.DOScale(Vector3.zero, 0.2f)
-                        .SetEase(Ease.InBack)
-                        .OnComplete(() =>
-                        {
-                            ReturnDotToPool(dot.gameObject);
-                            dots[x, y] = null;
-                        });
+                    //Bugged code
+                    // animationsLeft++;
+
+                    // int tempX = x;
+                    // int tempY = y;
+                    // Dot dot = dots[tempX, tempY];
+                    // RectTransform rt = dot.GetComponent<RectTransform>();
+
+                    // rt.DOScale(Vector3.zero, 0.1f)
+                    //     .SetEase(Ease.InBack)
+                    //     .OnComplete(() =>
+                    //     {
+                    //         ReturnDotToPool(dot.gameObject);
+                    //         dots[tempX, tempY] = null;
+
+                    //         animationsLeft--;
+                    //         if (animationsLeft == 0)
+                    //         {
+                    //             isClearing = false;
+                    //             RefillGrid();
+                    //         }
+                    //     });
                 }
             }
         }
-    }
 
-    public void ShuffleGrid()
-    {
-        ClearGrid();
-        RefillGrid();
+        if (animationsLeft == 0)
+        {
+            isShuffling = false;
+            RefillGrid(); // grid already empty, just in case
+        }
     }
-
 
     public void SpawnBomb(int endX, int endY)
     {
@@ -127,7 +145,7 @@ public class GridManager : MonoBehaviour
         // Setup the dot properties
         dot.column = endX;
         dot.row = endY;
-        dot.isBomb = true; // ✅ Important to set BEFORE assigning to dots[,]
+        dot.isBomb = true; 
 
         // Assign to grid
         dots[endX, endY] = dot;
@@ -139,9 +157,8 @@ public class GridManager : MonoBehaviour
         // Activate bomb behavior if any
         bomb.column = endX;
         bomb.row = endY;
-        bomb.ActivateBomb();
+        bomb.SetBomb();
 
-        // Debug
         Debug.Log($"[SpawnBomb] Assigned bomb at ({endX},{endY}) | isBomb: {dot.isBomb} | InGrid: {dots[endX, endY] == dot}");
     }
 
@@ -150,7 +167,7 @@ public class GridManager : MonoBehaviour
     {
         if (isRefilling) return;
         isRefilling = true;
-
+     
         float moveDuration = 0.25f;
         float fallDelay = 0.05f;
         
@@ -232,7 +249,6 @@ public class GridManager : MonoBehaviour
 
     Vector2 GetPositionFromGrid(int x, int y)
     {
-        float cellSize = 64f;
         return new Vector2(x * cellSize, -y * cellSize);
     }
 
