@@ -45,7 +45,6 @@ public class Dot : MonoBehaviour, IPointerClickHandler
         Color targetColor = colors[nextIndex];
         dotColor = (DotColor)nextIndex;
 
-        //animate
         image.transform.DOScale(1.2f, 0.1f).OnKill(() => image.transform.DOScale(1f, 0.1f));
         image.DOFade(0, 0.2f).OnKill(() => image.DOFade(1, 0.2f).OnKill(() => image.DOColor(targetColor, 0.3f)));
         image.DOColor(targetColor, 0.3f).OnKill(() => SetColor(dotColor, colors[nextIndex])); 
@@ -54,6 +53,16 @@ public class Dot : MonoBehaviour, IPointerClickHandler
     public void Highlight()
     {
         GetComponent<RectTransform>().DOPunchScale(Vector3.one * 0.5f, 0.5f, 5, 1f);
+        if (image != null)
+        {
+            Color originalColor = image.color;
+            Color flashColor = Color.yellow;
+
+            Sequence flashSeq = DOTween.Sequence();
+            flashSeq.Append(image.DOColor(flashColor, 0.1f));
+            flashSeq.Append(image.DOColor(originalColor, 0.1f));
+            flashSeq.SetLoops(3, LoopType.Yoyo); 
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)

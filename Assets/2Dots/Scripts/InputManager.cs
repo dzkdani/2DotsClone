@@ -23,7 +23,7 @@ public class InputManager : MonoBehaviour
 
     void Update()
     {
-        if (gridManager.IsRefilling) return; // Block input during refill
+        if (gridManager.IsRefilling) return;
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
